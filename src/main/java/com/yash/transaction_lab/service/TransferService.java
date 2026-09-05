@@ -15,12 +15,14 @@ import org.springframework.transaction.annotation.Transactional;
 public class TransferService {
 
     private final AccountRepository accountRepository;
+    private final TransferAuditService transferAuditService;
 
-    public TransferService(AccountRepository accountRepository) {
+    public TransferService(AccountRepository accountRepository, TransferAuditService transferAuditService) {
         this.accountRepository = accountRepository;
+        this.transferAuditService = transferAuditService;
     }
 
-    @Transactional(rollbackFor = TransferFailedException.class)
+    @Transactional
     public TransferResponse transfer(TransferRequest request) throws TransferFailedException {
         Account fromAccount = accountRepository.findById(request.getFromAccountId())
                 .orElseThrow(() -> new AccountNotFoundException("Source account not found"));
@@ -35,8 +37,10 @@ public class TransferService {
         }
 
         fromAccount.setBalance(fromAccount.getBalance().subtract(request.getAmount()));
-        throw new TransferFailedException("Transfer failed");
+        transferAuditService.record();
+        throw new RuntimeException("TransferFailed");
 //        toAccount.setBalance(toAccount.getBalance().add(request.getAmount()));
+//
 //        return new TransferResponse(
 //                "Transfer completed successfully",
 //                fromAccount.getId(),
