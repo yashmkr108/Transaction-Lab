@@ -10,6 +10,7 @@ import com.yash.transaction_lab.exception.TransferFailedException;
 import com.yash.transaction_lab.repository.AccountRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Service
 public class TransferService {
@@ -24,6 +25,14 @@ public class TransferService {
 
     @Transactional
     public TransferResponse transfer(TransferRequest request) throws TransferFailedException {
+        System.out.println(
+                "Transfer transaction active: " +
+                        TransactionSynchronizationManager.isActualTransactionActive()
+        );
+        System.out.println(
+                "Transaction name: " +
+                        TransactionSynchronizationManager.getCurrentTransactionName()
+        );
         Account fromAccount = accountRepository.findById(request.getFromAccountId())
                 .orElseThrow(() -> new AccountNotFoundException("Source account not found"));
         Account toAccount = accountRepository.findById(request.getToAccountId())
@@ -38,14 +47,15 @@ public class TransferService {
 
         fromAccount.setBalance(fromAccount.getBalance().subtract(request.getAmount()));
         transferAuditService.record();
-        throw new RuntimeException("TransferFailed");
-//        toAccount.setBalance(toAccount.getBalance().add(request.getAmount()));
-//
-//        return new TransferResponse(
-//                "Transfer completed successfully",
-//                fromAccount.getId(),
-//                toAccount.getId(),
-//                request.getAmount()
-//        );
+//        throw new RuntimeException("TransferFailed");
+        toAccount.setBalance(toAccount.getBalance().add(request.getAmount()));
+
+        return new TransferResponse(
+                "Transfer completed successfully",
+                fromAccount.getId(),
+                toAccount.getId(),
+                request.getAmount()
+        );
     }
+
 }

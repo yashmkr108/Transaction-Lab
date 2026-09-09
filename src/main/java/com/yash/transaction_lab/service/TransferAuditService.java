@@ -5,6 +5,7 @@ import com.yash.transaction_lab.repository.TransferAuditRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Service
 public class TransferAuditService {
@@ -17,6 +18,14 @@ public class TransferAuditService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void record() {
+        System.out.println(
+                "Audit transaction active: " +
+                        TransactionSynchronizationManager.isActualTransactionActive()
+        );
+        System.out.println(
+                "Transaction name: " +
+                        TransactionSynchronizationManager.getCurrentTransactionName()
+        );
         auditRepository.save(
                 new TransferAudit("Transfer attempted")
         );
