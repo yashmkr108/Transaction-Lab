@@ -2,9 +2,11 @@ package com.yash.transaction_lab.exception;
 
 import com.yash.transaction_lab.dto.ErrorResponse;
 import com.yash.transaction_lab.dto.ValidationErrorResponse;
+import jakarta.persistence.OptimisticLockException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -82,4 +84,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
 
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<Map<String,String>> handleOptimisticLockingFailure(
+            ObjectOptimisticLockingFailureException e
+    ){
+        Map<String,String> response = new HashMap<>();
+        response.put("message","Account was modified by another transaction. Please retry.");
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(response);
+    }
 }

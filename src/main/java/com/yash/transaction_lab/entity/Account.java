@@ -17,6 +17,9 @@ public class Account {
 
     private BigDecimal balance;
 
+    @Version
+    private long version;
+
     public Account() {
     }
 
@@ -47,5 +50,13 @@ public class Account {
 
     public void setBalance(BigDecimal balance) {
         this.balance = balance;
+    }
+
+    public Long getVersion() {
+        return version;
+    }
+
+    public void setVersion(Long version) {
+        this.version = version;
     }
 }
