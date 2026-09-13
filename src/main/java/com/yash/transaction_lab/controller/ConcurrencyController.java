@@ -24,4 +24,38 @@ public class ConcurrencyController {
 
         return "Withdrawal completed";
     }
+
+    @PostMapping("/withdraw-pessimistic/{id}")
+    public String withdrawWithPessimisticLock(
+            @PathVariable Long id,
+            @RequestParam BigDecimal amount
+    ) {
+
+        concurrencyService.withdrawWithPessimisticLock(id, amount);
+
+        return "Withdrawal completed";
+    }
+
+    @PostMapping("/deadlock/aThenB")
+    public String deadlockCreationAThenB(
+            @RequestParam Long aId,
+            @RequestParam Long bId
+    ) {
+
+        concurrencyService.lockAThenB(aId, bId);
+
+        return "Withdrawal completed";
+    }
+
+    @PostMapping("/deadlock/bThenA")
+    public String deadlockCreationBThenA(
+            @RequestParam Long aId,
+            @RequestParam Long bId
+    ) {
+
+        concurrencyService.lockBThenA(aId,bId);
+
+        return "Withdrawal completed";
+    }
+
 }

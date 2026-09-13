@@ -9,6 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
+import static java.lang.Thread.sleep;
+
 @Service
 public class ConcurrencyService {
 
@@ -35,7 +37,7 @@ public class ConcurrencyService {
         }
 
         try {
-            Thread.sleep(10000);
+            sleep(10000);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
@@ -49,6 +51,94 @@ public class ConcurrencyService {
                 Thread.currentThread().getName()
                         + " writing balance: "
                         + newBalance
+        );
+    }
+
+    @Transactional
+    public void withdrawWithPessimisticLock(
+            Long accountId,
+            BigDecimal amount
+    ) {
+
+        Account account = accountRepository.findByIdForUpdate(accountId)
+                .orElseThrow(AccountNotFoundException::new);
+
+        System.out.println(
+                Thread.currentThread().getName()
+                        + " acquired lock. Balance: "
+                        + account.getBalance()
+        );
+
+        if (account.getBalance().compareTo(amount) < 0) {
+            throw new InsufficientBalanceException();
+        }
+
+        try {
+            sleep(10000);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
+        account.setBalance(
+                account.getBalance().subtract(amount)
+        );
+
+        System.out.println(
+                Thread.currentThread().getName()
+                        + " new balance: "
+                        + account.getBalance()
+        );
+    }
+
+    @Transactional
+    public void lockAThenB(Long aId, Long bId) {
+
+        Account a = accountRepository.findByIdForUpdate(aId)
+                .orElseThrow();
+
+        System.out.println(
+                Thread.currentThread().getName()
+                        + " locked A"
+        );
+
+        try {
+            sleep(5000);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
+        Account b = accountRepository.findByIdForUpdate(bId)
+                .orElseThrow();
+
+        System.out.println(
+                Thread.currentThread().getName()
+                        + " locked B"
+        );
+    }
+
+    @Transactional
+    public void lockBThenA(Long aId, Long bId) {
+
+        Account b = accountRepository.findByIdForUpdate(bId)
+                .orElseThrow();
+
+        System.out.println(
+                Thread.currentThread().getName()
+                        + " locked B"
+        );
+
+        try {
+            sleep(5000);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
+        Account a = accountRepository.findByIdForUpdate(aId)
+                .orElseThrow();
+
+        System.out.println(
+                Thread.currentThread().getName()
+                        + " locked A"
         );
     }
 }
